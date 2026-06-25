@@ -18,7 +18,7 @@ claude plugin marketplace add "$DIR" 2>&1 | tail -1 || true
 claude plugin install wz-bien-ban@work-zone --scope user 2>&1 | tail -1 || true
 
 echo "[2/3] Dựng môi trường + tải model (lần đầu ~vài phút)..."
-bash "$DIR/plugin/scripts/install.sh"
+bash "$DIR/scripts/install.sh"
 
 echo "[3/3] Xong."
 echo ""
