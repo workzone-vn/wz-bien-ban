@@ -92,37 +92,58 @@ def record_start(name):
     return 0
 
 
-def _blackhole_index():
-    """Tìm index thiết bị audio 'BlackHole' trong avfoundation (None nếu chưa cài)."""
+def _list_audio():
+    """Trả [(index, name)] các thiết bị audio đầu vào của avfoundation."""
     r = subprocess.run(["ffmpeg", "-hide_banner", "-f", "avfoundation",
                         "-list_devices", "true", "-i", ""],
                        capture_output=True, text=True)
     out = r.stderr + r.stdout
-    in_audio = False
+    devs, in_audio = [], False
     for line in out.splitlines():
         if "AVFoundation audio devices" in line:
             in_audio = True
             continue
         if in_audio:
-            m = re.search(r"\[(\d+)\]\s*(.+)", line)
-            if m and "blackhole" in m.group(2).lower():
-                return m.group(1)
+            if "AVFoundation video devices" in line:
+                break
+            m = re.search(r"\[(\d+)\]\s*(.+?)\s*$", line)
+            if m:
+                devs.append((m.group(1), m.group(2)))
+    return devs
+
+
+def _bh_index(devs=None):
+    for idx, name in (devs or _list_audio()):
+        if "blackhole" in name.lower():
+            return idx
     return None
 
 
+def _mic_index(devs=None):
+    """Index của mic thật (bỏ qua BlackHole/aggregate). Mặc định thiết bị đầu không phải BlackHole."""
+    devs = devs or _list_audio()
+    for idx, name in devs:
+        if "blackhole" not in name.lower():
+            return idx
+    return "0"
+
+
 def _record_cmd(wav):
-    """Lệnh ffmpeg ghi. Nếu bật chế độ 'ghi tiếng trong máy' + có BlackHole:
-    trộn mic + BlackHole (bắt được cả mình và người khác kể cả đeo tai nghe)."""
+    """Lệnh ffmpeg ghi. Dò mic theo TÊN (vì cài BlackHole làm đổi số index).
+    Bật chế độ 'ghi tiếng trong máy' + có BlackHole -> trộn mic + BlackHole."""
     base = ["ffmpeg", "-hide_banner", "-loglevel", "warning"]
     tail = ["-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(wav)]
+    devs = _list_audio()
+    # Cho phép ép mic qua biến môi trường; mặc định dò theo tên
+    mic = os.environ.get("WZ_AUDIO_DEV") or f":{_mic_index(devs)}"
     if (DATA / ".system_audio").exists():
-        bh = _blackhole_index()
-        if bh is not None:
-            return (base + ["-f", "avfoundation", "-i", AUDIO_DEV,
+        bh = _bh_index(devs)
+        if bh is not None and bh != mic.lstrip(":"):
+            return (base + ["-f", "avfoundation", "-i", mic,
                             "-f", "avfoundation", "-i", f":{bh}",
                             "-filter_complex", "amix=inputs=2:duration=longest:normalize=0"]
                     + tail)
-    return base + ["-f", "avfoundation", "-i", AUDIO_DEV] + tail
+    return base + ["-f", "avfoundation", "-i", mic] + tail
 
 
 def _alive(pid):

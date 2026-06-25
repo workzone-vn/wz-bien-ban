@@ -18,9 +18,10 @@ else
     echo "Sai checksum, dừng cho an toàn."; rm -f "$TMP"; exit 1
   fi
   echo "Cài BlackHole (sẽ hỏi mật khẩu admin)..."
-  osascript -e "do shell script \"installer -pkg '$TMP' -target /\" with administrator privileges"
+  # Cài + nạp lại CoreAudio trong cùng 1 phiên admin để BlackHole hiện ra ngay
+  osascript -e "do shell script \"installer -pkg '$TMP' -target / && killall coreaudiod\" with administrator privileges"
   rm -f "$TMP"
-  echo "Đã cài BlackHole."
+  echo "Đã cài BlackHole + nạp lại âm thanh."
 fi
 
 # Bật chế độ ghi tiếng trong máy cho app
