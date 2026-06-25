@@ -1,50 +1,73 @@
 #!/usr/bin/env bash
-# WZ Biên Bản - CÀI 1 PHÁT. Tự nạp plugin vào Claude Code + dựng môi trường.
-# Khách chỉ cần chạy (hoặc bảo Claude Code chạy):
+# WZ Biên Bản - CÀI 1 PHÁT (Claude Code + Claude Desktop). Không cần cài gì ngoài.
 #   curl -fsSL https://raw.githubusercontent.com/workzone-vn/wz-bien-ban/main/install.sh | bash
 set -e
 DATA="${WZ_DATA_DIR:-$HOME/wz-bien-ban}"
-mkdir -p "$DATA/output"
+RAW="https://raw.githubusercontent.com/workzone-vn/wz-bien-ban/main"
+mkdir -p "$DATA/output" "$DATA/engine"
 
 echo "=================================================="
 echo "   Cài đặt WZ Biên Bản"
 echo "=================================================="
 
-# 1. Claude Code (bắt buộc - đây là nền tảng chạy plugin)
-if ! command -v claude >/dev/null 2>&1; then
-  echo "Chưa thấy Claude Code trên máy."
-  echo "Cài Claude Code tại: https://claude.com/claude-code  (hoặc dùng app Claude Desktop có Claude Code)."
-  echo "Cài xong chạy lại lệnh này."
-  exit 1
-fi
-echo "[1/3] Claude Code OK"
-
-# 2. Nạp plugin (không cần ffmpeg/brew/chrome cài tay)
-echo "[2/3] Nạp plugin WZ Biên Bản..."
-claude plugin marketplace add workzone-vn/wz-bien-ban 2>&1 | tail -1 || true
-claude plugin install wz-bien-ban@work-zone 2>&1 | tail -1 || true
-
-# 3. Môi trường + ffmpeg đóng gói + model
-echo "[3/3] Dựng môi trường + tải model (ffmpeg đóng gói sẵn, không cần cài ngoài)..."
+# 1. Môi trường Python + ffmpeg đóng gói + model (cho cả 3 mặt: plugin/MCP/app)
 if ! command -v uv >/dev/null 2>&1; then
+  echo "[1/4] Cài uv..."
   curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null 2>&1
   export PATH="$HOME/.local/bin:$PATH"
+else
+  echo "[1/4] uv OK"
 fi
 uv venv --python 3.12 "$DATA/.venv" >/dev/null 2>&1 || true
 source "$DATA/.venv/bin/activate"
+echo "[2/4] Cài thư viện + tải model Whisper large-v3 (~3GB, lần đầu)..."
 uv pip install --quiet mlx-whisper soundfile imageio-ffmpeg "mcp[cli]"
 python - <<'PY'
 from huggingface_hub import snapshot_download
 snapshot_download("mlx-community/whisper-large-v3-mlx")
-print("Model OK")
+print("  Model OK")
 PY
+
+# 2. Tải engine + MCP server vào ~/wz-bien-ban/engine (self-contained)
+echo "[3/4] Tải engine..."
+for f in wz.py render.py glossary.yaml; do
+  curl -fsSL "$RAW/plugins/wz-bien-ban/scripts/$f" -o "$DATA/engine/$f"
+done
+curl -fsSL "$RAW/mcp/server.py" -o "$DATA/engine/server.py"
+
+# 3. Claude Code plugin (nếu có claude CLI)
+if command -v claude >/dev/null 2>&1; then
+  echo "[4/4] Nạp plugin Claude Code..."
+  claude plugin marketplace add workzone-vn/wz-bien-ban 2>&1 | tail -1 || true
+  claude plugin install wz-bien-ban@work-zone 2>&1 | tail -1 || true
+else
+  echo "[4/4] (Bỏ qua plugin Claude Code - không thấy lệnh 'claude')"
+fi
+
+# 4. Đăng ký MCP cho Claude Desktop (nếu có Claude.app)
+if [ -d "/Applications/Claude.app" ]; then
+  python - <<PY
+import json, pathlib, datetime
+cfg = pathlib.Path.home()/"Library/Application Support/Claude/claude_desktop_config.json"
+cfg.parent.mkdir(parents=True, exist_ok=True)
+d = json.loads(cfg.read_text()) if cfg.exists() else {}
+if cfg.exists():
+    bak = cfg.with_suffix(".json.wzbak")
+    bak.write_text(cfg.read_text())
+d.setdefault("mcpServers", {})["wz-bien-ban"] = {
+    "command": str(pathlib.Path.home()/"wz-bien-ban/.venv/bin/python"),
+    "args": [str(pathlib.Path.home()/"wz-bien-ban/engine/server.py")],
+    "type": "stdio",
+}
+cfg.write_text(json.dumps(d, ensure_ascii=False, indent=2))
+print("  Đã đăng ký MCP cho Claude Desktop (thoát/mở lại Claude Desktop để dùng).")
+PY
+fi
 
 echo ""
 echo "=================================================="
-echo "  XONG. Hãy MỞ LẠI Claude Code, rồi dùng:"
-echo "     /bat-dau-hop     (bắt đầu ghi họp)"
-echo "     /ket-thuc-hop    (ra biên bản + PDF)"
-echo ""
-echo "  Không cần cài ffmpeg/Chrome riêng. Lần ghi đầu, Mac hỏi"
-echo "  quyền Micro thì bấm Cho phép."
+echo "  XONG. 2 cách dùng (tùy app bạn xài):"
+echo "   • Claude Code:    gõ /bat-dau-hop  rồi  /ket-thuc-hop"
+echo "   • Claude Desktop: nói 'bắt đầu họp' ... 'kết thúc họp, viết biên bản'"
+echo "  Mở lại Claude để nạp. Lần ghi đầu, Mac hỏi quyền Micro -> Cho phép."
 echo "=================================================="

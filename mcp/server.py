@@ -18,9 +18,15 @@ import sys
 from contextlib import redirect_stdout
 from pathlib import Path
 
-# Nạp engine đã có (wz.py, render.py)
-ENGINE = Path(__file__).resolve().parent.parent / "plugins" / "wz-bien-ban" / "scripts"
-sys.path.insert(0, str(ENGINE))
+# Nạp engine (wz.py, render.py). Tìm ở: cùng thư mục server (layout đã cài),
+# rồi repo (plugins/.../scripts), rồi ~/wz-bien-ban/engine.
+_here = Path(__file__).resolve().parent
+for _c in [_here,
+           _here.parent.parent / "plugins" / "wz-bien-ban" / "scripts",
+           Path.home() / "wz-bien-ban" / "engine"]:
+    if (_c / "wz.py").exists():
+        sys.path.insert(0, str(_c))
+        break
 import wz  # noqa: E402
 
 from mcp.server.fastmcp import FastMCP  # noqa: E402
