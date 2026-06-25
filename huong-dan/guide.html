@@ -1,59 +1,64 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Huong dan cai dat WZ Bien Ban</title>
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Huong dan cai Workzone Meeting Note</title>
 <style>
-  @page{size:A4;margin:16mm 16mm}
+  @page{size:A4;margin:15mm 16mm}
   *{box-sizing:border-box}html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{margin:0;color:#26303f;font-family:"Helvetica Neue",Arial,"Arial Unicode MS",sans-serif;font-size:11pt;line-height:1.55}
-  .cover{background:linear-gradient(135deg,#1c3d6e,#2f7fd1);color:#fff;border-radius:14px;padding:26px 28px;margin-bottom:22px}
+  .cover{background:linear-gradient(135deg,#1c3d6e,#2f7fd1);color:#fff;border-radius:14px;padding:24px 28px;margin-bottom:20px}
   .eyebrow{font-size:8.5pt;letter-spacing:.16em;text-transform:uppercase;color:#bcd6f5;font-weight:700;margin-bottom:8px}
   .cover h1{font-size:23pt;margin:0 0 6px;line-height:1.15}
   .cover p{margin:0;font-size:10.5pt;color:#dcebfb}
-  h2{color:#1c3d6e;font-size:13pt;margin:1.4em 0 .5em;display:flex;align-items:center;gap:9px}
-  .num{display:inline-flex;width:24px;height:24px;border-radius:50%;background:#2f7fd1;color:#fff;
-    font-size:11pt;font-weight:700;align-items:center;justify-content:center;flex:0 0 auto}
-  p{margin:.45em 0}
+  h2{color:#1c3d6e;font-size:12.5pt;margin:1.25em 0 .45em;display:flex;align-items:center;gap:9px}
+  .num{display:inline-flex;width:23px;height:23px;border-radius:50%;background:#2f7fd1;color:#fff;
+    font-size:10.5pt;font-weight:700;align-items:center;justify-content:center;flex:0 0 auto}
+  p{margin:.4em 0}
+  a{color:#2f7fd1;word-break:break-all}
   code,.cmd{font-family:"SF Mono",Menlo,monospace;font-size:9.5pt}
-  .cmd{display:block;background:#0f1c30;color:#cfe6ff;padding:11px 14px;border-radius:8px;margin:8px 0;
+  .cmd{display:block;background:#0f1c30;color:#cfe6ff;padding:11px 14px;border-radius:8px;margin:7px 0;
     white-space:pre-wrap;word-break:break-all}
   .req{background:#f1f5fb;border:1px solid #dce6f3;border-radius:10px;padding:12px 16px;font-size:10pt}
   .req b{color:#1c3d6e}
-  .note{background:#eaf2fc;border-left:3px solid #2f7fd1;padding:10px 14px;border-radius:0 8px 8px 0;font-size:10pt;color:#37506f;margin:.7em 0}
-  .use{display:flex;gap:12px;margin:.6em 0}
-  .use .k{font-family:"SF Mono",Menlo,monospace;background:#1c3d6e;color:#fff;padding:3px 10px;border-radius:6px;font-size:9.5pt;flex:0 0 auto;align-self:flex-start}
+  .note{background:#eaf2fc;border-left:3px solid #2f7fd1;padding:9px 14px;border-radius:0 8px 8px 0;font-size:9.7pt;color:#37506f;margin:.6em 0}
+  .use{display:flex;gap:11px;margin:.5em 0}
+  .use .k{font-family:"SF Mono",Menlo,monospace;background:#1c3d6e;color:#fff;padding:3px 10px;border-radius:6px;font-size:9pt;flex:0 0 auto;align-self:flex-start}
   .ok{color:#1f9d6b;font-weight:600}
-  .foot{margin-top:24px;padding-top:10px;border-top:1px solid #e2e9f3;font-size:8.5pt;color:#9aa8b8;text-align:center}
+  .foot{margin-top:20px;padding-top:9px;border-top:1px solid #e2e9f3;font-size:8.5pt;color:#9aa8b8;text-align:center}
 </style></head><body>
 
 <div class="cover">
   <div class="eyebrow">Work Zone · Hướng dẫn cài đặt</div>
-  <h1>WZ Biên Bản</h1>
-  <p>Biên bản họp tiếng Việt, chạy ngay trên máy bạn. Ghi âm 1 lệnh, kết thúc là có biên bản + PDF.</p>
+  <h1>Workzone Meeting Note</h1>
+  <p>Ghi âm cuộc họp, tự ra biên bản + PDF. Chạy ngay trên máy bạn, âm thanh không rời máy.</p>
 </div>
 
 <div class="req">
-  <b>Chỉ cần:</b> máy Mac (chip Apple M1 trở lên) &middot; đã cài
-  <a href="https://claude.com/claude-code">Claude Code</a> (có sẵn trong app Claude Desktop).
-  <br><b>Không cần</b> tự cài ffmpeg hay gì khác - công cụ tự lo. (Google Chrome chỉ cần nếu muốn tự xuất PDF; thiếu thì vẫn có bản xem HTML.)
+  <b>Cần có trước:</b> máy Mac (chip Apple M1 trở lên) &middot; đã cài
+  <a href="https://claude.ai/download">Claude</a> (bản Desktop hoặc Claude Code) -
+  vì phần viết biên bản dùng chính Claude của bạn.
+  <br><b>Không cần</b> cài thêm gì khác (ffmpeg, model... app tự lo).
 </div>
 
-<h2><span class="num">1</span> Cài bằng 1 prompt</h2>
-<p>Mở Claude Code, dán nguyên câu này vào và gửi:</p>
-<div class="cmd">Cài giúp tôi công cụ WZ Biên Bản: chạy lệnh
-curl -fsSL https://raw.githubusercontent.com/workzone-vn/workzone-meeting-note/main/install.sh | bash
-rồi báo tôi khi xong.</div>
-<p>Claude sẽ tự kiểm tra máy, tải mọi thứ cần (kể cả bộ nhận giọng nói ~3GB) và nạp plugin. Chờ báo <span class="ok">XONG</span>.</p>
-<div class="note">Cách khác: mở Terminal dán đúng dòng <code>curl -fsSL https://raw.githubusercontent.com/workzone-vn/workzone-meeting-note/main/install.sh | bash</code></div>
+<h2><span class="num">1</span> Tải app</h2>
+<p>Tải về và giải nén (bấm đúp file .zip):</p>
+<div class="cmd">https://github.com/workzone-vn/workzone-meeting-note/releases/download/v0.1.0/Workzone-Meeting-Note.zip</div>
 
-<h2><span class="num">2</span> Mở lại Claude Code</h2>
-<p>Đóng và mở lại Claude Code để plugin nạp vào. Gõ dấu <code>/</code> thấy <code>/bat-dau-hop</code> là đã sẵn sàng.</p>
-<div class="note">Lần ghi âm đầu tiên, máy Mac sẽ hỏi quyền Micro, bấm <b>Cho phép</b>.</div>
+<h2><span class="num">2</span> Kéo vào Applications</h2>
+<p>Kéo <b>Workzone Meeting Note.app</b> vào thư mục <b>Applications</b>.</p>
 
-<h2><span class="num">3</span> Dùng hàng ngày (chỉ 2 lệnh)</h2>
-<div class="use"><span class="k">/bat-dau-hop</span><span>Bắt đầu ghi âm cuộc họp. (Chưa cài BlackHole thì bật loa ngoài, không đeo tai nghe.)</span></div>
-<div class="use"><span class="k">/ket-thuc-hop</span><span>Dừng ghi &rarr; tự transcript &rarr; viết biên bản &rarr; xuất PDF và mở ra cho bạn.</span></div>
-<p>File kết quả nằm ở thư mục <code>~/wz-bien-ban/output/&lt;tên cuộc họp&gt;/</code>:
-<b>bien-ban.pdf</b> (gửi đi), <b>viewer.html</b> (xem có tìm kiếm).</p>
+<h2><span class="num">3</span> Cho phép mở (app chưa ký)</h2>
+<p>Mở <b>Terminal</b> (tìm "Terminal" trong Spotlight), dán đúng dòng này rồi Enter:</p>
+<div class="cmd">xattr -dr com.apple.quarantine "/Applications/Workzone Meeting Note.app"</div>
+<div class="note">Bước này để macOS không báo "app bị hỏng / không mở được". Chỉ làm 1 lần.</div>
 
-<div class="note"><b>Riêng tư:</b> toàn bộ âm thanh và bản ghi nằm trên máy bạn. Phần viết biên bản dùng chính Claude Code của bạn. Không có file âm thanh nào gửi lên máy chủ bên thứ ba.</div>
+<h2><span class="num">4</span> Mở app lần đầu</h2>
+<p>Mở <b>Workzone Meeting Note</b> từ Applications. Lần đầu app <b>tự tải bộ nhận giọng nói (~3GB, vài phút)</b> - cứ để chạy. Khi ghi âm lần đầu, Mac hỏi <b>quyền Micro</b> &rarr; bấm <b>Cho phép</b>.</p>
+
+<h2><span class="num">5</span> Dùng (icon 🎙️ trên thanh menu)</h2>
+<div class="use"><span class="k">● Bắt đầu họp</span><span>Bắt đầu ghi. Nếu chưa cài BlackHole thì bật loa ngoài (không đeo tai nghe) để bắt được tiếng mọi người.</span></div>
+<div class="use"><span class="k">■ Kết thúc</span><span>Dừng ghi, app tự tạo transcript. Báo "Transcript xong".</span></div>
+<p>Rồi mở <b>Claude</b>, gõ: <i>"viết biên bản cuộc họp vừa rồi"</i> &rarr; Claude tự viết biên bản (tóm tắt, việc cần làm) và xuất PDF.</p>
+<p>File kết quả ở thư mục <code>~/wz-bien-ban/output/</code>: <b>bien-ban.pdf</b> (gửi đi), <b>viewer.html</b> (xem có tìm kiếm).</p>
+
+<div class="note"><b>Riêng tư:</b> toàn bộ âm thanh và bản ghi nằm trên máy bạn. Không có file âm thanh nào gửi lên máy chủ bên thứ ba.</div>
 
 <div class="foot">Work Zone · workzone.ai.vn · Hỗ trợ: hello@workzone.vn</div>
 </body></html>
