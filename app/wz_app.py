@@ -71,11 +71,37 @@ class WZApp(rumps.App):
             rumps.MenuItem("Thoát", callback=self.quit_app),
         ]
         self._busy = False
+        self._installing = False
         rumps.Timer(self._tick, 2).start()
+        if not VENV_PY.exists():
+            self._installing = True
+            threading.Thread(target=self._first_run_install, daemon=True).start()
+
+    def _first_run_install(self):
+        """Lần mở đầu: tự tải engine + model + đăng ký MCP (không cần cài tay)."""
+        rumps.notification("WZ Biên Bản", "Đang cài đặt lần đầu",
+                           "Tải bộ nhận giọng nói (~3GB), chờ vài phút. Đừng tắt app.")
+        try:
+            subprocess.run(
+                "curl -fsSL https://raw.githubusercontent.com/workzone-vn/"
+                "wz-bien-ban/main/install.sh | bash",
+                shell=True, timeout=3600,
+            )
+        except Exception:  # noqa: BLE001
+            pass
+        self._installing = False
+        if VENV_PY.exists():
+            rumps.notification("WZ Biên Bản", "Cài xong ✓",
+                               "Sẵn sàng. Bấm 'Bắt đầu họp' để ghi.")
+        else:
+            rumps.notification("WZ Biên Bản", "Cài chưa xong",
+                               "Mở Terminal chạy: curl -fsSL .../install.sh | bash")
 
     def _tick(self, _):
         st = _recording()
-        if st:
+        if self._installing:
+            self.title = "⏳ Cài..."
+        elif st:
             mins = (time.time() - st["started"]) / 60
             self.title = f"🔴 {mins:.0f}′"
         elif self._busy:
@@ -84,6 +110,9 @@ class WZApp(rumps.App):
             self.title = "🎙️ WZ"
 
     def start(self, _):
+        if self._installing:
+            rumps.notification("WZ Biên Bản", "Đang cài đặt lần đầu", "Chờ cài xong rồi ghi nhé.")
+            return
         if not VENV_PY.exists():
             rumps.alert("Chưa cài đặt", "Chạy cài đặt trước (xem 'Trạng thái cài đặt').")
             return
