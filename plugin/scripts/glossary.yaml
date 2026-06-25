@@ -1,0 +1,34 @@
+# Glossary sửa thuật ngữ + tên riêng cho transcript Work Zone.
+# Claude dùng file này để sửa lỗi nhận dạng của Whisper khi viết biên bản.
+# Thêm tên người/đối tác/sản phẩm hay bị nghe nhầm vào đây.
+
+# Tên người (chuẩn)
+people:
+  - Hoàng Đình Dũng        # Giám đốc Work Zone
+  - Lê Văn Ninh            # Tech Lead (Signal)
+  - Bùi Thanh Tuấn         # Chợ Agent + AI Growth Hacking
+  - Vân Anh                # CEO Bee Pro (anhntv@adsplus.vn)
+
+# Thương hiệu / công ty
+brands:
+  - Work Zone
+  - Bee Pro
+  - AdsPlus
+  - Signal
+  - Omicare
+  - Jupviec
+
+# Thuật ngữ hay bị nghe nhầm (sai -> đúng)
+fixes:
+  oát giôn: Work Zone
+  quắc giôn: Work Zone
+  bi pro: Bee Pro
+  ép pi pro: Bee Pro
+  át plớt: AdsPlus
+  sích nồ: Signal
+  ây ai: AI
+  ây pi ai: API
+  cờ rim: CRM
+  ây dôn: Agent
+  prompt: prompt
+  to ken: token

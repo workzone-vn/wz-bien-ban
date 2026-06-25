@@ -1,0 +1,19 @@
+{
+  "name": "work-zone",
+  "owner": {
+    "name": "Work Zone",
+    "url": "https://workzone.ai.vn"
+  },
+  "metadata": {
+    "description": "Chợ Agent Work Zone - các công cụ AI cho doanh nghiệp Việt",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "wz-bien-ban",
+      "source": "./plugin",
+      "description": "Biên bản họp tiếng Việt, chạy local. Ghi âm 1 lệnh, kết thúc ra biên bản + PDF. Audio không rời máy.",
+      "category": ["productivity", "meeting"]
+    }
+  ]
+}

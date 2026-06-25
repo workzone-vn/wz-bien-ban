@@ -1,0 +1,11 @@
+{
+  "name": "wz-bien-ban",
+  "version": "0.1.0",
+  "description": "Biên bản họp tiếng Việt chất lượng cao, chạy local trên máy bạn. Ghi âm bằng 1 lệnh, kết thúc là ra biên bản + PDF. AI dùng chính Claude Code của bạn, audio không rời máy.",
+  "author": {
+    "name": "Work Zone",
+    "url": "https://workzone.ai.vn"
+  },
+  "homepage": "https://workzone.ai.vn",
+  "keywords": ["meeting", "transcript", "bien-ban", "vietnamese", "whisper", "local"]
+}
