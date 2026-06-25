@@ -1,0 +1,57 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Huong dan cai dat WZ Bien Ban</title>
+<style>
+  @page{size:A4;margin:16mm 16mm}
+  *{box-sizing:border-box}html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{margin:0;color:#26303f;font-family:"Helvetica Neue",Arial,"Arial Unicode MS",sans-serif;font-size:11pt;line-height:1.55}
+  .cover{background:linear-gradient(135deg,#1c3d6e,#2f7fd1);color:#fff;border-radius:14px;padding:26px 28px;margin-bottom:22px}
+  .eyebrow{font-size:8.5pt;letter-spacing:.16em;text-transform:uppercase;color:#bcd6f5;font-weight:700;margin-bottom:8px}
+  .cover h1{font-size:23pt;margin:0 0 6px;line-height:1.15}
+  .cover p{margin:0;font-size:10.5pt;color:#dcebfb}
+  h2{color:#1c3d6e;font-size:13pt;margin:1.4em 0 .5em;display:flex;align-items:center;gap:9px}
+  .num{display:inline-flex;width:24px;height:24px;border-radius:50%;background:#2f7fd1;color:#fff;
+    font-size:11pt;font-weight:700;align-items:center;justify-content:center;flex:0 0 auto}
+  p{margin:.45em 0}
+  code,.cmd{font-family:"SF Mono",Menlo,monospace;font-size:9.5pt}
+  .cmd{display:block;background:#0f1c30;color:#cfe6ff;padding:11px 14px;border-radius:8px;margin:8px 0;
+    white-space:pre-wrap;word-break:break-all}
+  .req{background:#f1f5fb;border:1px solid #dce6f3;border-radius:10px;padding:12px 16px;font-size:10pt}
+  .req b{color:#1c3d6e}
+  .note{background:#eaf2fc;border-left:3px solid #2f7fd1;padding:10px 14px;border-radius:0 8px 8px 0;font-size:10pt;color:#37506f;margin:.7em 0}
+  .use{display:flex;gap:12px;margin:.6em 0}
+  .use .k{font-family:"SF Mono",Menlo,monospace;background:#1c3d6e;color:#fff;padding:3px 10px;border-radius:6px;font-size:9.5pt;flex:0 0 auto;align-self:flex-start}
+  .ok{color:#1f9d6b;font-weight:600}
+  .foot{margin-top:24px;padding-top:10px;border-top:1px solid #e2e9f3;font-size:8.5pt;color:#9aa8b8;text-align:center}
+</style></head><body>
+
+<div class="cover">
+  <div class="eyebrow">Work Zone · Hướng dẫn cài đặt</div>
+  <h1>WZ Biên Bản</h1>
+  <p>Biên bản họp tiếng Việt, chạy ngay trên máy bạn. Ghi âm 1 lệnh, kết thúc là có biên bản + PDF.</p>
+</div>
+
+<div class="req">
+  <b>Cần có trước:</b> máy Mac (chip Apple M1 trở lên) &middot; đã cài
+  <a href="https://claude.com/claude-code">Claude Code</a> &middot;
+  <code>ffmpeg</code> (mở Terminal gõ <code>brew install ffmpeg</code>) &middot; Google Chrome.
+</div>
+
+<h2><span class="num">1</span> Nạp plugin (chạy 1 lệnh)</h2>
+<p>Mở <b>Terminal</b> và dán đúng 1 dòng này:</p>
+<div class="cmd">claude plugin marketplace add workzone-vn/wz-bien-ban && claude plugin install wz-bien-ban@work-zone</div>
+<p>Báo <span class="ok">Successfully installed</span> là xong bước này.</p>
+
+<h2><span class="num">2</span> Mở lại Claude Code + cài 1 lần</h2>
+<p>Đóng và mở lại Claude Code. Sau đó gõ lệnh sau (chỉ chạy 1 lần đầu, để tải bộ nhận giọng nói):</p>
+<div class="cmd">/cai-dat</div>
+<div class="note">Lần này tải khoảng 3GB nên mất vài phút. Lần ghi âm đầu tiên, máy Mac sẽ hỏi quyền Micro cho Terminal, bấm <b>cho phép</b>.</div>
+
+<h2><span class="num">3</span> Dùng hàng ngày (chỉ 2 lệnh)</h2>
+<div class="use"><span class="k">/bat-dau-hop</span><span>Bắt đầu ghi âm cuộc họp. (Chưa cài BlackHole thì bật loa ngoài, không đeo tai nghe.)</span></div>
+<div class="use"><span class="k">/ket-thuc-hop</span><span>Dừng ghi &rarr; tự transcript &rarr; viết biên bản &rarr; xuất PDF và mở ra cho bạn.</span></div>
+<p>File kết quả nằm ở thư mục <code>~/wz-bien-ban/output/&lt;tên cuộc họp&gt;/</code>:
+<b>bien-ban.pdf</b> (gửi đi), <b>viewer.html</b> (xem có tìm kiếm).</p>
+
+<div class="note"><b>Riêng tư:</b> toàn bộ âm thanh và bản ghi nằm trên máy bạn. Phần viết biên bản dùng chính Claude Code của bạn. Không có file âm thanh nào gửi lên máy chủ bên thứ ba.</div>
+
+<div class="foot">Work Zone · workzone.ai.vn · Hỗ trợ: hello@workzone.vn</div>
+</body></html>

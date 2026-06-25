@@ -14,8 +14,8 @@ if ! command -v claude >/dev/null 2>&1; then
 fi
 
 echo "[1/3] Nạp plugin vào Claude Code..."
-claude plugin marketplace add "$DIR" 2>&1 | tail -1 || true
-claude plugin install wz-bien-ban@work-zone --scope user 2>&1 | tail -1 || true
+claude plugin marketplace add workzone-vn/wz-bien-ban 2>&1 | tail -1 || true
+claude plugin install wz-bien-ban@work-zone 2>&1 | tail -1 || true
 
 echo "[2/3] Dựng môi trường + tải model (lần đầu ~vài phút)..."
 bash "$DIR/plugins/wz-bien-ban/scripts/install.sh"
