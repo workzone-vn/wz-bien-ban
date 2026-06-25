@@ -32,7 +32,7 @@ if ! command -v uv >/dev/null 2>&1; then
 fi
 uv venv --python 3.12 "$DATA/.venv" >/dev/null 2>&1 || true
 source "$DATA/.venv/bin/activate"
-uv pip install --quiet mlx-whisper soundfile imageio-ffmpeg
+uv pip install --quiet mlx-whisper soundfile imageio-ffmpeg "mcp[cli]"
 python - <<'PY'
 from huggingface_hub import snapshot_download
 snapshot_download("mlx-community/whisper-large-v3-mlx")

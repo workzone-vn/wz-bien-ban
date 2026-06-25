@@ -16,7 +16,7 @@ fi
 echo "[2/3] Tạo môi trường + thư viện (gồm ffmpeg đóng gói)..."
 uv venv --python 3.12 "$DATA/.venv" >/dev/null 2>&1 || true
 source "$DATA/.venv/bin/activate"
-uv pip install --quiet mlx-whisper soundfile imageio-ffmpeg
+uv pip install --quiet mlx-whisper soundfile imageio-ffmpeg "mcp[cli]"
 
 echo "[3/3] Tải model Whisper large-v3 (~3GB, chỉ lần đầu)..."
 python - <<'PY'
