@@ -160,7 +160,7 @@ class WZApp(rumps.App):
         if not VENV_PY.exists():
             rumps.alert("Chưa cài engine",
                         "Mở Terminal chạy:\ncurl -fsSL https://raw.githubusercontent.com/"
-                        "workzone-vn/wz-bien-ban/main/install.sh | bash")
+                        "workzone-vn/workzone-meeting-note/main/install.sh | bash")
             return
         rc, out = _engine("check")
         rumps.alert("Workzone Meeting Note", out.strip() or "OK")

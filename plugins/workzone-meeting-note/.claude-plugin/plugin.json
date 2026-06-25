@@ -1,5 +1,5 @@
 {
-  "name": "wz-bien-ban",
+  "name": "workzone-meeting-note",
   "version": "0.1.0",
   "description": "Biên bản họp tiếng Việt chất lượng cao, chạy local trên máy bạn. Ghi âm bằng 1 lệnh, kết thúc là ra biên bản + PDF. AI dùng chính Claude Code của bạn, audio không rời máy.",
   "author": {

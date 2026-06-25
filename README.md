@@ -9,12 +9,12 @@
 Dán prompt này vào Claude Code:
 ```
 Cài giúp tôi công cụ WZ Biên Bản: chạy lệnh
-curl -fsSL https://raw.githubusercontent.com/workzone-vn/wz-bien-ban/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/workzone-vn/workzone-meeting-note/main/install.sh | bash
 rồi báo tôi khi xong.
 ```
 Hoặc chạy thẳng trong Terminal:
 ```
-curl -fsSL https://raw.githubusercontent.com/workzone-vn/wz-bien-ban/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/workzone-vn/workzone-meeting-note/main/install.sh | bash
 ```
 Xong thì mở lại Claude Code. Hướng dẫn có hình: `huong-dan/HUONG-DAN-CAI-DAT.pdf`.
 

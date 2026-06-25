@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # WZ Biên Bản - CÀI 1 PHÁT (Claude Code + Claude Desktop). Không cần cài gì ngoài.
-#   curl -fsSL https://raw.githubusercontent.com/workzone-vn/wz-bien-ban/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/workzone-vn/workzone-meeting-note/main/install.sh | bash
 set -e
 DATA="${WZ_DATA_DIR:-$HOME/wz-bien-ban}"
-RAW="https://raw.githubusercontent.com/workzone-vn/wz-bien-ban/main"
+RAW="https://raw.githubusercontent.com/workzone-vn/workzone-meeting-note/main"
 mkdir -p "$DATA/output" "$DATA/engine"
 
 echo "=================================================="
@@ -31,15 +31,15 @@ PY
 # 2. Tải engine + MCP server vào ~/wz-bien-ban/engine (self-contained)
 echo "[3/4] Tải engine..."
 for f in wz.py render.py glossary.yaml; do
-  curl -fsSL "$RAW/plugins/wz-bien-ban/scripts/$f" -o "$DATA/engine/$f"
+  curl -fsSL "$RAW/plugins/workzone-meeting-note/scripts/$f" -o "$DATA/engine/$f"
 done
 curl -fsSL "$RAW/mcp/server.py" -o "$DATA/engine/server.py"
 
 # 3. Claude Code plugin (nếu có claude CLI)
 if command -v claude >/dev/null 2>&1; then
   echo "[4/4] Nạp plugin Claude Code..."
-  claude plugin marketplace add workzone-vn/wz-bien-ban 2>&1 | tail -1 || true
-  claude plugin install wz-bien-ban@work-zone 2>&1 | tail -1 || true
+  claude plugin marketplace add workzone-vn/workzone-meeting-note 2>&1 | tail -1 || true
+  claude plugin install workzone-meeting-note@work-zone 2>&1 | tail -1 || true
 else
   echo "[4/4] (Bỏ qua plugin Claude Code - không thấy lệnh 'claude')"
 fi
@@ -54,7 +54,7 @@ d = json.loads(cfg.read_text()) if cfg.exists() else {}
 if cfg.exists():
     bak = cfg.with_suffix(".json.wzbak")
     bak.write_text(cfg.read_text())
-d.setdefault("mcpServers", {})["wz-bien-ban"] = {
+d.setdefault("mcpServers", {})["workzone-meeting-note"] = {
     "command": str(pathlib.Path.home()/"wz-bien-ban/.venv/bin/python"),
     "args": [str(pathlib.Path.home()/"wz-bien-ban/engine/server.py")],
     "type": "stdio",

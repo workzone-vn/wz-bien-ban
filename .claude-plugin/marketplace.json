@@ -8,14 +8,14 @@
   "description": "Chợ Agent Work Zone - các công cụ AI cho doanh nghiệp Việt",
   "plugins": [
     {
-      "name": "wz-bien-ban",
+      "name": "workzone-meeting-note",
       "description": "Biên bản họp tiếng Việt, chạy local. Ghi âm 1 lệnh, kết thúc ra biên bản + PDF. Audio không rời máy.",
       "author": {
         "name": "Work Zone",
         "url": "https://workzone.ai.vn"
       },
       "category": "productivity",
-      "source": "./plugins/wz-bien-ban",
+      "source": "./plugins/workzone-meeting-note",
       "strict": false
     }
   ]

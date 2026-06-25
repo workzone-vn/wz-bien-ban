@@ -31,7 +31,7 @@ import wz  # noqa: E402
 
 from mcp.server.fastmcp import FastMCP  # noqa: E402
 
-mcp = FastMCP("wz-bien-ban")
+mcp = FastMCP("workzone-meeting-note")
 
 
 def _quiet(fn, *a, **k):

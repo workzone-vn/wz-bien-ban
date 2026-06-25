@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 DATA="${WZ_DATA_DIR:-$HOME/wz-bien-ban}"
 source "$DATA/.venv/bin/activate"
 
-ENGINE="../plugins/wz-bien-ban/scripts"
+ENGINE="../plugins/workzone-meeting-note/scripts"
 
 # LSUIElement=1 -> app chỉ ở thanh menu, không hiện ở Dock
 pyinstaller --noconfirm --windowed --clean \
