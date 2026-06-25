@@ -13,10 +13,14 @@
       "name": "wz-bien-ban",
       "source": {
         "source": "url",
-        "url": "https://github.com/workzone-vn/wz-bien-ban.git"
+        "url": "https://github.com/workzone-vn/wz-bien-ban.git",
+        "sha": "374dd6a992c7f38a0e22b07b9f7cf636fd18f1af"
       },
       "description": "Biên bản họp tiếng Việt, chạy local. Ghi âm 1 lệnh, kết thúc ra biên bản + PDF. Audio không rời máy.",
-      "category": ["productivity", "meeting"]
+      "category": [
+        "productivity",
+        "meeting"
+      ]
     }
   ]
 }
