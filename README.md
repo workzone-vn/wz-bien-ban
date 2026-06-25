@@ -4,19 +4,20 @@
 
 ## Cài đặt (1 lần)
 
-**Yêu cầu:** macOS (Apple Silicon), [Claude Code](https://claude.com/claude-code), `ffmpeg` (`brew install ffmpeg`), Google Chrome (để xuất PDF).
+**Chỉ cần:** macOS (Apple Silicon) + [Claude Code](https://claude.com/claude-code) (có trong app Claude Desktop). Không cần tự cài ffmpeg/Chrome.
 
-1. Nạp plugin (mở Terminal, chạy 1 lệnh):
-   ```
-   claude plugin marketplace add workzone-vn/wz-bien-ban && claude plugin install wz-bien-ban@work-zone
-   ```
-2. Mở lại Claude Code, rồi cài môi trường + tải model (1 lần):
-   ```
-   /cai-dat
-   ```
-   (Tạo môi trường Python, tải Whisper large-v3 ~3GB.)
+Dán prompt này vào Claude Code:
+```
+Cài giúp tôi công cụ WZ Biên Bản: chạy lệnh
+curl -fsSL https://raw.githubusercontent.com/workzone-vn/wz-bien-ban/main/install.sh | bash
+rồi báo tôi khi xong.
+```
+Hoặc chạy thẳng trong Terminal:
+```
+curl -fsSL https://raw.githubusercontent.com/workzone-vn/wz-bien-ban/main/install.sh | bash
+```
+Xong thì mở lại Claude Code. Hướng dẫn có hình: `huong-dan/HUONG-DAN-CAI-DAT.pdf`.
 
-Xem hướng dẫn có hình tại `huong-dan/HUONG-DAN-CAI-DAT.pdf`.
 
 ## Dùng hàng ngày - chỉ 2 lệnh
 

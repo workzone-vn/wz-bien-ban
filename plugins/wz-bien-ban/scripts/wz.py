@@ -14,6 +14,7 @@ Dữ liệu lưu tại ~/wz-bien-ban/ (đổi bằng biến môi trường WZ_DA
 """
 import json
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -27,6 +28,29 @@ HERE = Path(__file__).resolve().parent
 AUDIO_DEV = os.environ.get("WZ_AUDIO_DEV", ":0")  # :0 = mic; đổi nếu cài BlackHole
 MODEL_HQ = "mlx-community/whisper-large-v3-mlx"
 MODEL_TURBO = "mlx-community/whisper-large-v3-turbo"
+
+
+def ensure_ffmpeg():
+    """Đảm bảo có 'ffmpeg' trong PATH. Nếu máy chưa có, dùng bản đóng gói qua pip
+    (imageio-ffmpeg) - tạo symlink tên 'ffmpeg' để cả mlx-whisper cũng tìm thấy.
+    Nhờ vậy khách KHÔNG cần tự cài ffmpeg ngoài."""
+    if shutil.which("ffmpeg"):
+        return
+    try:
+        import imageio_ffmpeg
+    except ImportError:
+        return  # install.sh sẽ cài; nếu chưa có thì để lỗi rõ ràng ở chỗ dùng
+    exe = imageio_ffmpeg.get_ffmpeg_exe()
+    bindir = DATA / "bin"
+    bindir.mkdir(parents=True, exist_ok=True)
+    link = bindir / "ffmpeg"
+    if not link.exists():
+        try:
+            link.symlink_to(exe)
+        except OSError:
+            shutil.copy2(exe, link)
+            link.chmod(0o755)
+    os.environ["PATH"] = f"{bindir}{os.pathsep}{os.environ.get('PATH', '')}"
 
 
 def _ts(sec):
@@ -188,10 +212,22 @@ def export_pdf(name):
         return 1
     html_path = build_print_html(out_dir)
     pdf_path = out_dir / "bien-ban.pdf"
-    chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    if not Path(chrome).exists():
-        print("Không thấy Google Chrome để render PDF.")
-        return 1
+    chrome = None
+    for c in ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+              "/Applications/Chromium.app/Contents/MacOS/Chromium",
+              "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+              "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"]:
+        if Path(c).exists():
+            chrome = c
+            break
+    if not chrome:
+        # Không có trình duyệt Chromium -> vẫn ra HTML để in tay (không fail)
+        from render import build_viewer_html
+        v = build_viewer_html(out_dir)
+        print(f"Chưa có Chrome để tự xuất PDF. Đã tạo trang xem: {v}")
+        print("Mở trang đó rồi In (Cmd+P) -> Save as PDF nếu cần file PDF.")
+        subprocess.run(["open", str(v)], check=False)
+        return 0
     subprocess.run([chrome, "--headless=new", "--disable-gpu", "--no-sandbox",
                     "--print-to-pdf-no-header", f"--print-to-pdf={pdf_path}",
                     f"file://{html_path}"],
@@ -233,9 +269,9 @@ def check():
             __import__(mod)
         except ImportError:
             print(f"Thiếu: {mod}"); ok = False
-    if subprocess.run(["which", "ffmpeg"], capture_output=True).returncode != 0:
-        print("Thiếu: ffmpeg"); ok = False
-    print("✅ Sẵn sàng." if ok else "Chưa đủ - chạy install.sh.")
+    if not shutil.which("ffmpeg"):
+        print("Thiếu: ffmpeg (sẽ tự dùng bản đóng gói imageio-ffmpeg khi chạy)")
+    print("✅ Sẵn sàng." if ok else "Chưa đủ - chạy /cai-dat.")
     return 0 if ok else 1
 
 
@@ -244,6 +280,8 @@ def main():
     if not args:
         print(__doc__); return 1
     cmd, rest = args[0], args[1:]
+    if cmd in ("record-start", "record-stop", "check"):
+        ensure_ffmpeg()  # đảm bảo ffmpeg sẵn (dùng bản pip nếu máy chưa có)
     if cmd == "record-start":
         return record_start(rest[0] if rest else None)
     if cmd == "record-stop":

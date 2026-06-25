@@ -30,20 +30,22 @@
 </div>
 
 <div class="req">
-  <b>Cần có trước:</b> máy Mac (chip Apple M1 trở lên) &middot; đã cài
-  <a href="https://claude.com/claude-code">Claude Code</a> &middot;
-  <code>ffmpeg</code> (mở Terminal gõ <code>brew install ffmpeg</code>) &middot; Google Chrome.
+  <b>Chỉ cần:</b> máy Mac (chip Apple M1 trở lên) &middot; đã cài
+  <a href="https://claude.com/claude-code">Claude Code</a> (có sẵn trong app Claude Desktop).
+  <br><b>Không cần</b> tự cài ffmpeg hay gì khác - công cụ tự lo. (Google Chrome chỉ cần nếu muốn tự xuất PDF; thiếu thì vẫn có bản xem HTML.)
 </div>
 
-<h2><span class="num">1</span> Nạp plugin (chạy 1 lệnh)</h2>
-<p>Mở <b>Terminal</b> và dán đúng 1 dòng này:</p>
-<div class="cmd">claude plugin marketplace add workzone-vn/wz-bien-ban && claude plugin install wz-bien-ban@work-zone</div>
-<p>Báo <span class="ok">Successfully installed</span> là xong bước này.</p>
+<h2><span class="num">1</span> Cài bằng 1 prompt</h2>
+<p>Mở Claude Code, dán nguyên câu này vào và gửi:</p>
+<div class="cmd">Cài giúp tôi công cụ WZ Biên Bản: chạy lệnh
+curl -fsSL https://raw.githubusercontent.com/workzone-vn/wz-bien-ban/main/install.sh | bash
+rồi báo tôi khi xong.</div>
+<p>Claude sẽ tự kiểm tra máy, tải mọi thứ cần (kể cả bộ nhận giọng nói ~3GB) và nạp plugin. Chờ báo <span class="ok">XONG</span>.</p>
+<div class="note">Cách khác: mở Terminal dán đúng dòng <code>curl -fsSL https://raw.githubusercontent.com/workzone-vn/wz-bien-ban/main/install.sh | bash</code></div>
 
-<h2><span class="num">2</span> Mở lại Claude Code + cài 1 lần</h2>
-<p>Đóng và mở lại Claude Code. Sau đó gõ lệnh sau (chỉ chạy 1 lần đầu, để tải bộ nhận giọng nói):</p>
-<div class="cmd">/cai-dat</div>
-<div class="note">Lần này tải khoảng 3GB nên mất vài phút. Lần ghi âm đầu tiên, máy Mac sẽ hỏi quyền Micro cho Terminal, bấm <b>cho phép</b>.</div>
+<h2><span class="num">2</span> Mở lại Claude Code</h2>
+<p>Đóng và mở lại Claude Code để plugin nạp vào. Gõ dấu <code>/</code> thấy <code>/bat-dau-hop</code> là đã sẵn sàng.</p>
+<div class="note">Lần ghi âm đầu tiên, máy Mac sẽ hỏi quyền Micro, bấm <b>Cho phép</b>.</div>
 
 <h2><span class="num">3</span> Dùng hàng ngày (chỉ 2 lệnh)</h2>
 <div class="use"><span class="k">/bat-dau-hop</span><span>Bắt đầu ghi âm cuộc họp. (Chưa cài BlackHole thì bật loa ngoài, không đeo tai nghe.)</span></div>
