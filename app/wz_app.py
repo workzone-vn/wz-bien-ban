@@ -67,6 +67,9 @@ class WZApp(rumps.App):
             rumps.MenuItem("Mở thư mục kết quả", callback=self.open_folder),
             rumps.MenuItem("Mở Claude để viết biên bản", callback=self.open_claude),
             None,
+            rumps.MenuItem("Bật ghi tiếng trong máy (BlackHole)", callback=self.system_audio_on),
+            rumps.MenuItem("Tắt ghi tiếng trong máy", callback=self.system_audio_off),
+            None,
             rumps.MenuItem("Trạng thái cài đặt", callback=self.check_setup),
             rumps.MenuItem("Thoát", callback=self.quit_app),
         ]
@@ -155,6 +158,41 @@ class WZApp(rumps.App):
 
     def open_claude(self, _):
         subprocess.run(["open", "-a", "Claude"], check=False)
+
+    def system_audio_on(self, _):
+        if self._installing:
+            rumps.notification("Workzone Meeting Note", "Đang cài đặt", "Chờ cài xong đã nhé.")
+            return
+        script = ENGINE / "setup_blackhole.sh"
+        rumps.notification("Workzone Meeting Note", "Đang cài BlackHole",
+                           "Sẽ hỏi mật khẩu admin. Cài driver âm thanh cần quyền này.")
+        threading.Thread(target=self._do_blackhole, args=(script,), daemon=True).start()
+
+    def _do_blackhole(self, script):
+        rc, out = (1, "")
+        try:
+            r = subprocess.run(["bash", str(script)], capture_output=True, text=True, timeout=600)
+            rc, out = r.returncode, r.stdout + r.stderr
+        except Exception as e:  # noqa: BLE001
+            out = str(e)
+        if "BẬT_THÀNH_CÔNG" in out:
+            rumps.alert(
+                "Đã bật ghi tiếng trong máy",
+                "Bước cuối (1 lần) trong cửa sổ Audio MIDI Setup vừa mở:\n\n"
+                "1. Bấm nút + góc dưới trái > Create Multi-Output Device\n"
+                "2. Tích chọn cả 'BlackHole 2ch' VÀ loa/tai nghe của bạn\n"
+                "3. Khi họp online, vào phần Âm thanh chọn Multi-Output Device này làm loa\n\n"
+                "Xong! Từ giờ app ghi được cả tiếng người khác dù bạn đeo tai nghe.")
+        else:
+            rumps.alert("Chưa bật được", (out[-300:] or "Lỗi không rõ") +
+                        "\n\nCó thể bạn đã bấm Huỷ ở ô mật khẩu.")
+
+    def system_audio_off(self, _):
+        flag = DATA / ".system_audio"
+        if flag.exists():
+            flag.unlink()
+        rumps.notification("Workzone Meeting Note", "Đã tắt ghi tiếng trong máy",
+                           "Quay lại ghi qua mic (bật loa ngoài).")
 
     def check_setup(self, _):
         if not VENV_PY.exists():

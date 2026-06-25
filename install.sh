@@ -30,7 +30,7 @@ PY
 
 # 2. Tải engine + MCP server vào ~/wz-bien-ban/engine (self-contained)
 echo "[3/4] Tải engine..."
-for f in wz.py render.py glossary.yaml; do
+for f in wz.py render.py glossary.yaml setup_blackhole.sh; do
   curl -fsSL "$RAW/plugins/workzone-meeting-note/scripts/$f" -o "$DATA/engine/$f"
 done
 curl -fsSL "$RAW/mcp/server.py" -o "$DATA/engine/server.py"

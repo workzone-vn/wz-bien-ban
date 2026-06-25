@@ -15,6 +15,7 @@ pyinstaller --noconfirm --windowed --clean \
   --add-data "$ENGINE/wz.py:engine" \
   --add-data "$ENGINE/render.py:engine" \
   --add-data "$ENGINE/glossary.yaml:engine" \
+  --add-data "$ENGINE/setup_blackhole.sh:engine" \
   --osx-entitlements-file entitlements.plist \
   wz_app.py
 

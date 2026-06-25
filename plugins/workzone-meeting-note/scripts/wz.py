@@ -14,6 +14,7 @@ Dữ liệu lưu tại ~/wz-bien-ban/ (đổi bằng biến môi trường WZ_DA
 """
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -79,11 +80,9 @@ def record_start(name):
     out_dir.mkdir(parents=True, exist_ok=True)
     wav = out_dir / "audio.16k.wav"
     log = out_dir / "_record.log"
+    cmd = _record_cmd(wav)
     proc = subprocess.Popen(
-        ["ffmpeg", "-hide_banner", "-loglevel", "warning",
-         "-f", "avfoundation", "-i", AUDIO_DEV,
-         "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(wav)],
-        stdout=open(log, "w"), stderr=subprocess.STDOUT,
+        cmd, stdout=open(log, "w"), stderr=subprocess.STDOUT,
         stdin=subprocess.DEVNULL, start_new_session=True,
     )
     STATE.write_text(json.dumps({"name": name, "pid": proc.pid,
@@ -91,6 +90,39 @@ def record_start(name):
     print(f"🔴 ĐANG GHI cuộc họp: {name}")
     print("   Họp xong gõ: kết thúc họp")
     return 0
+
+
+def _blackhole_index():
+    """Tìm index thiết bị audio 'BlackHole' trong avfoundation (None nếu chưa cài)."""
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-f", "avfoundation",
+                        "-list_devices", "true", "-i", ""],
+                       capture_output=True, text=True)
+    out = r.stderr + r.stdout
+    in_audio = False
+    for line in out.splitlines():
+        if "AVFoundation audio devices" in line:
+            in_audio = True
+            continue
+        if in_audio:
+            m = re.search(r"\[(\d+)\]\s*(.+)", line)
+            if m and "blackhole" in m.group(2).lower():
+                return m.group(1)
+    return None
+
+
+def _record_cmd(wav):
+    """Lệnh ffmpeg ghi. Nếu bật chế độ 'ghi tiếng trong máy' + có BlackHole:
+    trộn mic + BlackHole (bắt được cả mình và người khác kể cả đeo tai nghe)."""
+    base = ["ffmpeg", "-hide_banner", "-loglevel", "warning"]
+    tail = ["-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(wav)]
+    if (DATA / ".system_audio").exists():
+        bh = _blackhole_index()
+        if bh is not None:
+            return (base + ["-f", "avfoundation", "-i", AUDIO_DEV,
+                            "-f", "avfoundation", "-i", f":{bh}",
+                            "-filter_complex", "amix=inputs=2:duration=longest:normalize=0"]
+                    + tail)
+    return base + ["-f", "avfoundation", "-i", AUDIO_DEV] + tail
 
 
 def _alive(pid):
