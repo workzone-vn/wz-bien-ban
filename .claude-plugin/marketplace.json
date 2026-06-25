@@ -1,26 +1,22 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "work-zone",
   "owner": {
     "name": "Work Zone",
     "url": "https://workzone.ai.vn"
   },
-  "metadata": {
-    "description": "Chợ Agent Work Zone - các công cụ AI cho doanh nghiệp Việt",
-    "version": "1.0.0"
-  },
+  "description": "Chợ Agent Work Zone - các công cụ AI cho doanh nghiệp Việt",
   "plugins": [
     {
       "name": "wz-bien-ban",
-      "source": {
-        "source": "url",
-        "url": "https://github.com/workzone-vn/wz-bien-ban.git",
-        "sha": "374dd6a992c7f38a0e22b07b9f7cf636fd18f1af"
-      },
       "description": "Biên bản họp tiếng Việt, chạy local. Ghi âm 1 lệnh, kết thúc ra biên bản + PDF. Audio không rời máy.",
-      "category": [
-        "productivity",
-        "meeting"
-      ]
+      "author": {
+        "name": "Work Zone",
+        "url": "https://workzone.ai.vn"
+      },
+      "category": "productivity",
+      "source": "./plugins/wz-bien-ban",
+      "strict": false
     }
   ]
 }
