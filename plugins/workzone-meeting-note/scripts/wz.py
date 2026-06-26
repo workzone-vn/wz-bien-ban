@@ -79,15 +79,27 @@ def record_start(name):
     out_dir = OUTPUT / name
     out_dir.mkdir(parents=True, exist_ok=True)
     wav = out_dir / "audio.16k.wav"
-    log = out_dir / "_record.log"
-    cmd = _record_cmd(wav)
-    proc = subprocess.Popen(
-        cmd, stdout=open(log, "w"), stderr=subprocess.STDOUT,
-        stdin=subprocess.DEVNULL, start_new_session=True,
-    )
-    STATE.write_text(json.dumps({"name": name, "pid": proc.pid,
-                                 "wav": str(wav), "started": time.time()}))
-    print(f"🔴 ĐANG GHI cuộc họp: {name}")
+    log = open(out_dir / "_record.log", "w")
+    pids, mode = [], "mic"
+
+    if _system_mode():
+        # Tiếng hệ thống (ScreenCaptureKit) + mic (ffmpeg) song song, trộn khi dừng
+        mode = "system"
+        sysp = subprocess.Popen([str(_syscap_path()), str(out_dir / "system.wav")],
+                                stdout=log, stderr=subprocess.STDOUT,
+                                stdin=subprocess.DEVNULL, start_new_session=True)
+        micp = subprocess.Popen(_mic_cmd(out_dir / "mic.wav"),
+                                stdout=log, stderr=subprocess.STDOUT,
+                                stdin=subprocess.DEVNULL, start_new_session=True)
+        pids = [sysp.pid, micp.pid]
+    else:
+        proc = subprocess.Popen(_mic_cmd(wav), stdout=log, stderr=subprocess.STDOUT,
+                                stdin=subprocess.DEVNULL, start_new_session=True)
+        pids = [proc.pid]
+
+    STATE.write_text(json.dumps({"name": name, "pid": pids[0], "pids": pids,
+                                 "mode": mode, "wav": str(wav), "started": time.time()}))
+    print(f"🔴 ĐANG GHI cuộc họp: {name}" + (" (mic + tiếng hệ thống)" if mode == "system" else ""))
     print("   Họp xong gõ: kết thúc họp")
     return 0
 
@@ -112,38 +124,36 @@ def _list_audio():
     return devs
 
 
-def _bh_index(devs=None):
-    for idx, name in (devs or _list_audio()):
-        if "blackhole" in name.lower():
+def _mic_index(devs=None):
+    """Index mic thật (bỏ qua thiết bị ảo). Mặc định thiết bị đầu hợp lệ."""
+    devs = devs or _list_audio()
+    for idx, name in devs:
+        low = name.lower()
+        if "blackhole" not in low and "aggregate" not in low:
             return idx
+    return devs[0][0] if devs else "0"
+
+
+def _syscap_path():
+    """Đường dẫn binary bắt tiếng hệ thống (ScreenCaptureKit). None nếu không có."""
+    for c in [HERE / "wz-syscap",
+              HERE.parent / "native" / "wz-syscap",
+              DATA / "engine" / "wz-syscap"]:
+        if c.exists():
+            return c
     return None
 
 
-def _mic_index(devs=None):
-    """Index của mic thật (bỏ qua BlackHole/aggregate). Mặc định thiết bị đầu không phải BlackHole."""
-    devs = devs or _list_audio()
-    for idx, name in devs:
-        if "blackhole" not in name.lower():
-            return idx
-    return "0"
+def _mic_cmd(wav):
+    """Lệnh ffmpeg ghi mic -> wav 16k mono."""
+    mic = os.environ.get("WZ_AUDIO_DEV") or f":{_mic_index()}"
+    return ["ffmpeg", "-hide_banner", "-loglevel", "warning",
+            "-f", "avfoundation", "-i", mic,
+            "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(wav)]
 
 
-def _record_cmd(wav):
-    """Lệnh ffmpeg ghi. Dò mic theo TÊN (vì cài BlackHole làm đổi số index).
-    Bật chế độ 'ghi tiếng trong máy' + có BlackHole -> trộn mic + BlackHole."""
-    base = ["ffmpeg", "-hide_banner", "-loglevel", "warning"]
-    tail = ["-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(wav)]
-    devs = _list_audio()
-    # Cho phép ép mic qua biến môi trường; mặc định dò theo tên
-    mic = os.environ.get("WZ_AUDIO_DEV") or f":{_mic_index(devs)}"
-    if (DATA / ".system_audio").exists():
-        bh = _bh_index(devs)
-        if bh is not None and bh != mic.lstrip(":"):
-            return (base + ["-f", "avfoundation", "-i", mic,
-                            "-f", "avfoundation", "-i", f":{bh}",
-                            "-filter_complex", "amix=inputs=2:duration=longest:normalize=0"]
-                    + tail)
-    return base + ["-f", "avfoundation", "-i", mic] + tail
+def _system_mode():
+    return (DATA / ".system_audio").exists() and _syscap_path() is not None
 
 
 def _alive(pid):
@@ -159,18 +169,36 @@ def record_stop(turbo=False):
         print("Không có cuộc họp nào đang ghi.")
         return 1
     st = json.loads(STATE.read_text())
-    pid, name, wav = st["pid"], st["name"], Path(st["wav"])
-    if _alive(pid):
-        os.kill(pid, signal.SIGINT)
-        for _ in range(50):
-            if not _alive(pid):
-                break
-            time.sleep(0.1)
+    name, wav = st["name"], Path(st["wav"])
+    pids = st.get("pids") or [st.get("pid")]
+    for pid in pids:
+        if pid and _alive(pid):
+            os.kill(pid, signal.SIGINT)
+    for _ in range(60):
+        if not any(p and _alive(p) for p in pids):
+            break
+        time.sleep(0.1)
     STATE.unlink(missing_ok=True)
+
+    out_dir = OUTPUT / name
+    if st.get("mode") == "system":
+        # Trộn tiếng hệ thống + mic -> audio.16k.wav
+        sysw, micw = out_dir / "system.wav", out_dir / "mic.wav"
+        ins = [p for p in (sysw, micw) if p.exists() and p.stat().st_size > 1000]
+        if len(ins) == 2:
+            subprocess.run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+                            "-i", str(sysw), "-i", str(micw),
+                            "-filter_complex", "amix=inputs=2:duration=longest:normalize=0",
+                            "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(wav)], check=False)
+        elif ins:
+            subprocess.run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+                            "-i", str(ins[0]), "-ac", "1", "-ar", "16000",
+                            "-c:a", "pcm_s16le", str(wav)], check=False)
+
     size = wav.stat().st_size if wav.exists() else 0
     print(f"⏹  Đã dừng ghi: {name} ({size // 1024} KB)")
     if size < 5000:
-        print("File ghi quá nhỏ - có thể chưa cấp quyền micro cho terminal.")
+        print("File ghi quá nhỏ - có thể chưa cấp quyền micro/ghi màn hình.")
         return 1
     print("Đang transcript (chạy local)...")
     _transcribe(name, turbo)

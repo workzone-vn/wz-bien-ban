@@ -30,10 +30,14 @@ PY
 
 # 2. Tải engine + MCP server vào ~/wz-bien-ban/engine (self-contained)
 echo "[3/4] Tải engine..."
-for f in wz.py render.py glossary.yaml setup_blackhole.sh; do
+for f in wz.py render.py glossary.yaml; do
   curl -fsSL "$RAW/plugins/workzone-meeting-note/scripts/$f" -o "$DATA/engine/$f"
 done
 curl -fsSL "$RAW/mcp/server.py" -o "$DATA/engine/server.py"
+# Binary bắt tiếng hệ thống (ScreenCaptureKit) - thay BlackHole
+curl -fsSL "https://github.com/workzone-vn/workzone-meeting-note/releases/download/v0.1.0/wz-syscap" -o "$DATA/engine/wz-syscap" || true
+chmod +x "$DATA/engine/wz-syscap" 2>/dev/null || true
+xattr -dr com.apple.quarantine "$DATA/engine/wz-syscap" 2>/dev/null || true
 
 # 3. Claude Code plugin (nếu có claude CLI)
 if command -v claude >/dev/null 2>&1; then
