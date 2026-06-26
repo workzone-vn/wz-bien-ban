@@ -310,9 +310,15 @@ def export_pdf(name):
         subprocess.run(["open", str(v)], check=False)
         return 0
     subprocess.run([chrome, "--headless=new", "--disable-gpu", "--no-sandbox",
-                    "--print-to-pdf-no-header", f"--print-to-pdf={pdf_path}",
-                    f"file://{html_path}"],
+                    "--no-pdf-header-footer", "--print-to-pdf-no-header",
+                    f"--print-to-pdf={pdf_path}", f"file://{html_path}"],
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+    # Xoá file print.html trung gian để không gây nhầm (mở nó bằng trình duyệt sẽ
+    # thêm header/footer của trình duyệt). Chỉ giữ bien-ban.pdf sạch.
+    try:
+        Path(html_path).unlink()
+    except OSError:
+        pass
     if pdf_path.exists():
         print(f"✅ PDF: {pdf_path}")
         subprocess.run(["open", str(pdf_path)], check=False)
