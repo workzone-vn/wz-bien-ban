@@ -141,16 +141,28 @@ class WZApp(rumps.App):
 
     def _do_stop(self):
         rc, out = _engine("record-stop")
-        self._busy = False
         name = None
         for line in out.splitlines():
             if line.startswith("OUTPUT_DIR="):
                 name = Path(line.split("=", 1)[1]).name
-        if rc == 0 and name:
-            rumps.notification("Workzone Meeting Note", "Transcript xong ✓",
-                               "Mở Claude và gõ: viết biên bản cuộc họp vừa rồi")
-        else:
+        if rc != 0 or not name:
+            self._busy = False
             rumps.notification("Workzone Meeting Note", "Có lỗi khi transcript", out[-180:])
+            return
+        # Tự viết biên bản + xuất PDF (Claude Code headless)
+        rumps.notification("Workzone Meeting Note", "Đang viết biên bản...",
+                           "Claude đang soạn biên bản và xuất PDF.")
+        rc2, out2 = _engine("bienban", name)
+        self._busy = False
+        if rc2 == 0:
+            rumps.notification("Workzone Meeting Note", "Xong ✓",
+                               "Biên bản + PDF đã tạo và mở ra cho bạn.")
+        elif "NO_CLAUDE" in out2 or rc2 == 2:
+            rumps.notification("Workzone Meeting Note", "Transcript xong ✓",
+                               "Chưa thấy Claude Code. Mở Claude và gõ: viết biên bản cuộc họp vừa rồi")
+        else:
+            rumps.notification("Workzone Meeting Note", "Transcript xong, biên bản lỗi",
+                               out2[-160:])
 
     def open_folder(self, _):
         OUTPUT.mkdir(parents=True, exist_ok=True)

@@ -330,6 +330,63 @@ def make_viewer(name):
     return 0
 
 
+def _claude_bin():
+    """Tìm CLI 'claude' (app mở từ Finder có PATH hẹp)."""
+    c = shutil.which("claude")
+    if c:
+        return c
+    for p in [Path.home() / ".local/bin/claude", Path("/opt/homebrew/bin/claude"),
+              Path("/usr/local/bin/claude")]:
+        if p.exists():
+            return str(p)
+    return None
+
+
+def write_bienban(name):
+    """Tự viết biên bản từ transcript bằng Claude Code headless (subscription của user), rồi xuất PDF."""
+    out_dir = OUTPUT / name
+    tx_file = out_dir / "transcript.speakers.txt"
+    if not tx_file.exists():
+        print("Chưa có transcript.")
+        return 1
+    claude = _claude_bin()
+    if not claude:
+        print("NO_CLAUDE")  # app sẽ bảo user tự mở Claude
+        return 2
+    tx = tx_file.read_text(encoding="utf-8")
+    gloss = (HERE / "glossary.yaml")
+    glossary = gloss.read_text(encoding="utf-8") if gloss.exists() else ""
+    prompt = (
+        "Bạn là thư ký ghi biên bản họp. Dưới đây là transcript thô (tiếng Việt, có thể sai "
+        "chính tả tên riêng/thuật ngữ) của một cuộc họp.\n\n"
+        f"GLOSSARY (sửa tên riêng/thuật ngữ theo đây nếu gặp):\n{glossary}\n\n"
+        "YÊU CẦU: Viết BIÊN BẢN HỌP hoàn chỉnh bằng tiếng Việt, định dạng Markdown, gồm:\n"
+        "# Tiêu đề (suy ra chủ đề) + ngày nếu có\n"
+        "## Tóm tắt (3-6 gạch đầu dòng)\n"
+        "## Nội dung chính (theo chủ đề, không chép lại từng câu)\n"
+        "## Quyết định\n"
+        "## Action items (bảng Markdown: | Việc | Người phụ trách | Deadline |)\n"
+        "QUY ƯỚC: KHÔNG dùng gạch dài (em-dash); heading từ 2 câu thêm <br> sau câu đầu; "
+        "bỏ các đoạn nhiễu (ký tự lặp vô nghĩa). CHỈ XUẤT MARKDOWN BIÊN BẢN, không thêm lời dẫn.\n\n"
+        f"TRANSCRIPT:\n{tx}\n"
+    )
+    env = dict(os.environ)
+    env["PATH"] = f"{Path(claude).parent}{os.pathsep}{env.get('PATH','')}"
+    print("Đang viết biên bản bằng Claude...")
+    r = subprocess.run([claude, "-p", prompt], capture_output=True, text=True,
+                       timeout=900, cwd=str(DATA), env=env)
+    md = (r.stdout or "").strip()
+    if not md:
+        print("Claude không trả về nội dung:", (r.stderr or "")[-200:])
+        return 1
+    # Ép bỏ gạch dài em-dash (quy ước cứng), giữ en-dash cho dải số
+    md = md.replace(" — ", " - ").replace("—", "-")
+    (out_dir / "bien-ban.md").write_text(md, encoding="utf-8")
+    print("✅ Đã viết biên bản. Xuất PDF...")
+    export_pdf(name)
+    return 0
+
+
 # ---------- TIỆN ÍCH ----------
 
 def status():
@@ -367,6 +424,8 @@ def main():
         return record_start(rest[0] if rest else None)
     if cmd == "record-stop":
         return record_stop("--turbo" in rest)
+    if cmd == "bienban":
+        return write_bienban(rest[0])
     if cmd == "pdf":
         return export_pdf(rest[0])
     if cmd == "viewer":
