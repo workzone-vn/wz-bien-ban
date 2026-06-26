@@ -122,12 +122,18 @@ class WZApp(rumps.App):
         if _recording():
             rumps.notification("Workzone Meeting Note", "", "Đang ghi rồi - hãy kết thúc trước.")
             return
-        rc, _out = _engine("record-start")
-        if rc == 0:
-            rumps.notification("Workzone Meeting Note", "Đang ghi cuộc họp",
-                               "Bật loa ngoài nếu chưa cài BlackHole. Xong bấm 'Kết thúc'.")
+        rc, out = _engine("record-start")
+        if rc != 0:
+            rumps.notification("Workzone Meeting Note", "Không bắt đầu được", out[-180:])
+            return
+        if "WARN_SILENT" in out:
+            rumps.alert("⚠️ Mic không có tín hiệu",
+                        "Đang ghi nhưng KHÔNG nhận được tiếng từ mic (thiết bị im lặng).\n\n"
+                        "Kiểm tra: mic có bị tắt? chọn đúng mic chưa? đã cấp quyền Micro chưa?\n\n"
+                        "Nên bấm 'Kết thúc' để dừng, sửa rồi ghi lại - tránh mất cả buổi họp.")
         else:
-            rumps.notification("Workzone Meeting Note", "Không bắt đầu được", _out[-180:])
+            rumps.notification("Workzone Meeting Note", "Đang ghi cuộc họp ✓",
+                               "Đã nhận tín hiệu mic. Xong bấm 'Kết thúc & tạo biên bản'.")
 
     def stop(self, _):
         if not _recording():

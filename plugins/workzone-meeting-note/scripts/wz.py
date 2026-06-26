@@ -85,6 +85,11 @@ def record_start(name):
     log = open(out_dir / "_record.log", "w")
     pids, mode = [], "mic"
 
+    # Tiền kiểm: thu thử mic ~1.2s, nếu im lặng tuyệt đối -> cảnh báo ngay (đừng mất cả buổi)
+    mic_dev = os.environ.get("WZ_AUDIO_DEV") or f":{_mic_index()}"
+    lvl = _probe_level(mic_dev)
+    mic_silent = lvl is not None and lvl <= -80.0
+
     if _system_mode():
         # Tiếng hệ thống (ScreenCaptureKit) + mic (ffmpeg) song song, trộn khi dừng
         mode = "system"
@@ -103,6 +108,10 @@ def record_start(name):
     STATE.write_text(json.dumps({"name": name, "pid": pids[0], "pids": pids,
                                  "mode": mode, "wav": str(wav), "started": started_ts}))
     print(f"🔴 ĐANG GHI cuộc họp: {name}" + (" (mic + tiếng hệ thống)" if mode == "system" else ""))
+    if mic_silent:
+        print("WARN_SILENT: ⚠️ Mic KHÔNG có tín hiệu (thiết bị im lặng). "
+              "Kiểm tra: mic có bị tắt? đúng mic chưa? đã cấp quyền Micro chưa? "
+              "Nên DỪNG, sửa, rồi ghi lại để khỏi mất buổi họp.")
     print("   Họp xong gõ: kết thúc họp")
     return 0
 
@@ -135,6 +144,22 @@ def _mic_index(devs=None):
         if "blackhole" not in low and "aggregate" not in low:
             return idx
     return devs[0][0] if devs else "0"
+
+
+def _probe_level(dev, secs=1.2):
+    """Đo mức âm lượng trung bình (dB) của 1 thiết bị trong ~1.2s. None nếu lỗi.
+    Dùng để cảnh báo SỚM nếu đang thu phải thiết bị im lặng (sai mic / mic tắt)."""
+    try:
+        r = subprocess.run(["ffmpeg", "-hide_banner", "-f", "avfoundation", "-i", dev,
+                            "-t", str(secs), "-af", "volumedetect", "-f", "null", "-"],
+                           capture_output=True, text=True, timeout=15)
+        for line in (r.stderr + r.stdout).splitlines():
+            m = re.search(r"mean_volume:\s*(-?[\d.]+) dB", line)
+            if m:
+                return float(m.group(1))
+    except Exception:  # noqa: BLE001
+        pass
+    return None
 
 
 def _syscap_path():
