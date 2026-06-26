@@ -78,6 +78,9 @@ def record_start(name):
     name = _safe_name(name)
     out_dir = OUTPUT / name
     out_dir.mkdir(parents=True, exist_ok=True)
+    started_ts = time.time()
+    # Lưu thời điểm bắt đầu họp (lúc bấm Bắt đầu) - survive khi record-stop xoá STATE
+    (out_dir / "meeting.json").write_text(json.dumps({"started": started_ts}), encoding="utf-8")
     wav = out_dir / "audio.16k.wav"
     log = open(out_dir / "_record.log", "w")
     pids, mode = [], "mic"
@@ -98,7 +101,7 @@ def record_start(name):
         pids = [proc.pid]
 
     STATE.write_text(json.dumps({"name": name, "pid": pids[0], "pids": pids,
-                                 "mode": mode, "wav": str(wav), "started": time.time()}))
+                                 "mode": mode, "wav": str(wav), "started": started_ts}))
     print(f"🔴 ĐANG GHI cuộc họp: {name}" + (" (mic + tiếng hệ thống)" if mode == "system" else ""))
     print("   Họp xong gõ: kết thúc họp")
     return 0
@@ -362,12 +365,21 @@ def write_bienban(name):
     tx = tx_file.read_text(encoding="utf-8")
     gloss = (HERE / "glossary.yaml")
     glossary = gloss.read_text(encoding="utf-8") if gloss.exists() else ""
+    try:
+        import render
+        started = render.fmt_meeting_time(out_dir)
+    except Exception:  # noqa: BLE001
+        started = ""
+    time_line = (f"THỜI GIAN BẮT ĐẦU HỌP (dùng đúng giá trị này): {started}\n\n"
+                 if started else "")
     prompt = (
         "Bạn là thư ký ghi biên bản họp. Dưới đây là transcript thô (tiếng Việt, có thể sai "
         "chính tả tên riêng/thuật ngữ) của một cuộc họp.\n\n"
+        f"{time_line}"
         f"GLOSSARY (sửa tên riêng/thuật ngữ theo đây nếu gặp):\n{glossary}\n\n"
         "YÊU CẦU: Viết BIÊN BẢN HỌP hoàn chỉnh bằng tiếng Việt, định dạng Markdown, gồm:\n"
-        "# Tiêu đề (suy ra chủ đề) + ngày nếu có\n"
+        "# Tiêu đề (suy ra chủ đề)\n"
+        "Ngay dưới tiêu đề ghi dòng: **Thời gian:** <thời gian bắt đầu họp ở trên>\n"
         "## Tóm tắt (3-6 gạch đầu dòng)\n"
         "## Nội dung chính (theo chủ đề, không chép lại từng câu)\n"
         "## Quyết định\n"

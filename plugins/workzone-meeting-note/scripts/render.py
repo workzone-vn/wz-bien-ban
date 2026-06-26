@@ -11,6 +11,24 @@ def _ts(sec):
     return f"{h:02d}:{m:02d}:{s:02d}" if h else f"{m:02d}:{s:02d}"
 
 
+_VN_WEEKDAY = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]
+
+
+def fmt_meeting_time(out_dir):
+    """Thời gian bắt đầu họp (lúc bấm Bắt đầu) dạng '13h30 Thứ Tư, ngày 24/06/2026'.
+    Trả '' nếu không có dữ liệu."""
+    import datetime
+    f = out_dir / "meeting.json"
+    if not f.exists():
+        return ""
+    try:
+        ts = json.loads(f.read_text(encoding="utf-8")).get("started")
+        dt = datetime.datetime.fromtimestamp(float(ts))
+        return f"{dt:%Hh%M} {_VN_WEEKDAY[dt.weekday()]}, ngày {dt:%d/%m/%Y}"
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def clean_noise(text):
     """Lọc nhiễu hallucination của Whisper. Trả về (text, is_noise)."""
     tokens = text.split()
@@ -108,7 +126,10 @@ def build_viewer_html(out_dir: Path) -> Path:
         rows.append(f'<div class="line" data-text="{html.escape(t.lower())}">'
                     f'<span class="ts">{_ts(s["start"])}</span>'
                     f'<span class="tx">{html.escape(t)}</span></div>')
+    started = fmt_meeting_time(out_dir)
+    started_html = f'<span>🕒 <b>{html.escape(started)}</b></span>' if started else ""
     page = _VIEWER.replace("{{TITLE}}", html.escape(_title(out_dir))) \
+                 .replace("{{STARTED}}", started_html) \
                  .replace("{{DURATION}}", _ts(segs[-1]["end"]) if segs else "00:00") \
                  .replace("{{COUNT}}", str(len(rows))) \
                  .replace("{{BIENBAN}}", md_to_html(bb_md)) \
@@ -127,7 +148,10 @@ def build_print_html(out_dir: Path) -> Path:
             continue
         rows.append(f'<div class="line"><span class="ts">{_ts(s["start"])}</span>'
                     f'<span class="tx">{html.escape(t)}</span></div>')
+    started = fmt_meeting_time(out_dir)
+    started_html = f"Thời gian <b>{html.escape(started)}</b> &middot; " if started else ""
     page = _PRINT.replace("{{TITLE}}", html.escape(_title(out_dir))) \
+                 .replace("{{STARTED}}", started_html) \
                  .replace("{{DURATION}}", _ts(segs[-1]["end"]) if segs else "00:00") \
                  .replace("{{COUNT}}", str(len(rows))) \
                  .replace("{{BIENBAN}}", md_to_html(bb_md)) \
@@ -187,7 +211,7 @@ _VIEWER = r"""<title>Biên bản: {{TITLE}}</title>
 <header class="top"><div class="head-in">
   <div class="eyebrow">Biên bản cuộc họp · WZ Biên Bản</div>
   <h1 class="title">{{TITLE}}</h1>
-  <div class="meta"><span>⏱ <b>{{DURATION}}</b></span><span>💬 <b>{{COUNT}}</b> đoạn lời</span></div>
+  <div class="meta">{{STARTED}}<span>⏱ <b>{{DURATION}}</b></span><span>💬 <b>{{COUNT}}</b> đoạn lời</span></div>
 </div></header>
 <nav class="tabs"><div class="inner" role="tablist">
   <button class="tab" role="tab" aria-selected="true" id="t1" onclick="show(1)">Transcript</button>
@@ -257,7 +281,7 @@ _PRINT = r"""<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>B
     <div class="cover">
       <div class="eyebrow">Biên bản cuộc họp</div>
       <h1>{{TITLE}}</h1>
-      <div class="meta">Thời lượng <b>{{DURATION}}</b> &middot; <b>{{COUNT}}</b> đoạn lời</div>
+      <div class="meta">{{STARTED}}Thời lượng <b>{{DURATION}}</b> &middot; <b>{{COUNT}}</b> đoạn lời</div>
     </div>{{BIENBAN}}</div>
   <div class="section-break"></div>
   <div class="tr-head"><h2>Transcript chi tiết</h2>
