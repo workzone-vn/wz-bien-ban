@@ -12,6 +12,7 @@ ENGINE="../plugins/workzone-meeting-note/scripts"
 pyinstaller --noconfirm --windowed --clean \
   --name "Workzone Meeting Note" \
   --osx-bundle-identifier "vn.workzone.meetingnote" \
+  --icon "AppIcon.icns" \
   --add-data "$ENGINE/wz.py:engine" \
   --add-data "$ENGINE/render.py:engine" \
   --add-data "$ENGINE/glossary.yaml:engine" \
