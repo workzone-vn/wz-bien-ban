@@ -22,6 +22,9 @@ uv venv --python 3.12 "$DATA/.venv" >/dev/null 2>&1 || true
 source "$DATA/.venv/bin/activate"
 echo "[2/4] Cài thư viện + tải model Whisper large-v3 (~3GB, lần đầu)..."
 uv pip install --quiet mlx-whisper soundfile imageio-ffmpeg "mcp[cli]"
+# Tách người nói (diarize) cần torch + pyannote.audio. Không có 2 gói này thì
+# lệnh diarize crash ImportError. Cài kèm để tính năng chạy được ngay.
+uv pip install --quiet torch "pyannote.audio>=3.1"
 python - <<'PY'
 from huggingface_hub import snapshot_download
 snapshot_download("mlx-community/whisper-large-v3-mlx")

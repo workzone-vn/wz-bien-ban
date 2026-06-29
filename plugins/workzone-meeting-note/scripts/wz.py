@@ -185,6 +185,10 @@ def _system_mode():
 
 
 def _alive(pid):
+    # Chặn pid không hợp lệ: os.kill(-1, 0) KHÔNG raise (pid -1 = "mọi tiến trình")
+    # nên nếu .state.json thiếu/hỏng key pid sẽ báo nhầm "đang ghi". Phải guard.
+    if not pid or pid <= 0:
+        return False
     try:
         os.kill(pid, 0)
         return True
@@ -292,9 +296,15 @@ def diarize(name, speakers=None):
         return 1
     out_dir = OUTPUT / name
     wav = out_dir / "audio.16k.wav"
-    import soundfile as sf
-    import torch
-    from pyannote.audio import Pipeline
+    try:
+        import soundfile as sf
+        import torch
+        from pyannote.audio import Pipeline
+    except ImportError:
+        print("Thiếu thư viện tách người nói. Cài thêm (1 lần):\n"
+              "  source ~/wz-bien-ban/.venv/bin/activate\n"
+              '  uv pip install torch "pyannote.audio>=3.1"')
+        return 1
     pipe = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token=token)
     if torch.backends.mps.is_available():
         pipe.to(torch.device("mps"))

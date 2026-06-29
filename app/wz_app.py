@@ -35,8 +35,10 @@ WZ = ENGINE / "wz.py"
 def _engine(*args):
     """Gọi engine bằng python của venv. Trả (rc, output)."""
     try:
+        # 7200s = 2h: họp dài transcribe Whisper large-v3 có thể >30 phút,
+        # timeout 1800 cũ làm mất transcript tự động của các buổi dài.
         r = subprocess.run([str(VENV_PY), str(WZ), *args],
-                           capture_output=True, text=True, timeout=1800)
+                           capture_output=True, text=True, timeout=7200)
         return r.returncode, (r.stdout + r.stderr)
     except Exception as e:  # noqa: BLE001
         return 1, str(e)
@@ -49,9 +51,12 @@ def _recording():
         st = json.loads(STATE.read_text())
     except Exception:  # noqa: BLE001
         return None
+    pid = st.get("pid")
+    if not pid or pid <= 0:  # pid -1/0 => os.kill không raise => báo nhầm "đang ghi"
+        return None
     try:
         import os
-        os.kill(st.get("pid", -1), 0)
+        os.kill(pid, 0)
         return st
     except OSError:
         return None
