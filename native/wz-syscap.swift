@@ -61,7 +61,9 @@ final class Cap: NSObject, SCStreamOutput, SCStreamDelegate {
 
     func stop() {
         stream?.stopCapture(completionHandler: { _ in })
-        file = nil   // flush + đóng file
+        // Đóng file TRÊN ĐÚNG queue ghi (q) để tránh data race với callback
+        // didOutputSampleBuffer đang write cùng lúc. q là serial nên an toàn.
+        q.sync { self.file = nil }   // flush + đóng file
     }
 }
 
@@ -82,15 +84,24 @@ if #available(macOS 13.0, *) {
     }
     signal(SIGINT, SIG_IGN)
     signal(SIGTERM, SIG_IGN)
-    let onStop: () -> Void = { cap.stop(); DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { exit(0) } }
+    // Signal source PHẢI nằm trên background queue (không phải .main): dispatchMain()
+    // bơm main queue, nhưng handler trên queue riêng mới chắc chắn chạy. Dùng .main
+    // + RunLoop.main.run() khiến handler KHÔNG fire -> tiến trình không thoát khi
+    // nhận SIGINT -> record-stop bỏ cuộc sau 6s, file ghi bị mồ côi không flush sạch.
+    let sigQ = DispatchQueue(label: "wz.syscap.signal")
+    let onStop: () -> Void = {
+        cap.stop()
+        Thread.sleep(forTimeInterval: 0.3)  // cho ScreenCaptureKit flush nốt buffer
+        exit(0)
+    }
     var signalSources: [DispatchSourceSignal] = []
     for s in [SIGINT, SIGTERM] {
-        let src = DispatchSource.makeSignalSource(signal: s, queue: .main)
+        let src = DispatchSource.makeSignalSource(signal: s, queue: sigQ)
         src.setEventHandler(handler: onStop)
         src.resume()
         signalSources.append(src)
     }
-    RunLoop.main.run()
+    dispatchMain()
 } else {
     FileHandle.standardError.write("Cần macOS 13 trở lên.\n".data(using: .utf8)!)
     exit(4)

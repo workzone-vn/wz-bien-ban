@@ -426,7 +426,9 @@ def write_bienban(name):
     env = dict(os.environ)
     env["PATH"] = f"{Path(claude).parent}{os.pathsep}{env.get('PATH','')}"
     print("Đang viết biên bản bằng Claude...")
-    r = subprocess.run([claude, "-p", prompt], capture_output=True, text=True,
+    # Truyền prompt qua stdin thay vì argv: transcript họp dài có thể vượt
+    # ARG_MAX (~1MB) nếu nhồi vào 1 đối số dòng lệnh -> "Argument list too long".
+    r = subprocess.run([claude, "-p"], input=prompt, capture_output=True, text=True,
                        timeout=900, cwd=str(DATA), env=env)
     md = (r.stdout or "").strip()
     if not md:

@@ -21,10 +21,11 @@ fi
 uv venv --python 3.12 "$DATA/.venv" >/dev/null 2>&1 || true
 source "$DATA/.venv/bin/activate"
 echo "[2/4] Cài thư viện + tải model Whisper large-v3 (~3GB, lần đầu)..."
-uv pip install --quiet mlx-whisper soundfile imageio-ffmpeg "mcp[cli]"
+# Pin version: tránh một bản upstream breaking làm mọi máy cài mới hỏng.
+uv pip install --quiet "mlx-whisper==0.4.3" "soundfile==0.14.0" "imageio-ffmpeg==0.6.0" "mcp[cli]==1.28.0"
 # Tách người nói (diarize) cần torch + pyannote.audio. Không có 2 gói này thì
 # lệnh diarize crash ImportError. Cài kèm để tính năng chạy được ngay.
-uv pip install --quiet torch "pyannote.audio>=3.1"
+uv pip install --quiet "torch==2.12.1" "pyannote.audio>=3.1,<4"
 python - <<'PY'
 from huggingface_hub import snapshot_download
 snapshot_download("mlx-community/whisper-large-v3-mlx")
@@ -38,7 +39,7 @@ for f in wz.py render.py glossary.yaml; do
 done
 curl -fsSL "$RAW/mcp/server.py" -o "$DATA/engine/server.py"
 # Binary bắt tiếng hệ thống (ScreenCaptureKit) - thay BlackHole
-curl -fsSL "https://github.com/workzone-vn/workzone-meeting-note/releases/download/v0.1.0/wz-syscap" -o "$DATA/engine/wz-syscap" || true
+curl -fsSL "https://github.com/workzone-vn/workzone-meeting-note/releases/download/v0.1.1/wz-syscap" -o "$DATA/engine/wz-syscap" || true
 chmod +x "$DATA/engine/wz-syscap" 2>/dev/null || true
 xattr -dr com.apple.quarantine "$DATA/engine/wz-syscap" 2>/dev/null || true
 
